@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\RegisteredAccountController;
+use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\EmailVerificationPromptController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -16,6 +18,45 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
+
+//kinabagohan
+Route::get('/verify-email', [EmailVerificationPromptController::class, '__invoke'])
+    ->middleware('auth')
+    ->name('verification.notice');
+
+// Handle verify email link
+Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
+    ->middleware(['auth', 'signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
+// Resend verification link
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+    
+    return back()->with('status', 'verification-link-sent');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+
+// Show the verify email page
+Route::get('/email/verify', function () {
+    return Inertia::render('Auth/VerifyEmail');
+})->middleware('auth')->name('verification.notice');
+
+// Handle the actual email verification
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
+    return redirect('/dashboard');
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+// Resend the verification email
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+    return back()->with('status', 'verification-link-sent');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
@@ -47,6 +88,9 @@ Route::get('/registered-account', function () {
     return Inertia::render('RegisteredAccount');
 })->name('registered-account');
 
+Route::put('/registered-account/{user}/toggle-status', [RegisteredAccountController::class, 'toggleStatus'])->name('registered-account.toggle-status');
+
+
 //new
 Route::get('/subscription', fn() => Inertia::render('Subscription'))->name('subscription');
 
@@ -66,6 +110,11 @@ Route::get('/registered-account', [RegisteredAccountController::class, 'index'])
 
 //my sub
 Route::middleware(['auth'])->get('/my-subscription', [MySubscriptionController::class, 'index'])->name('my-subscription');
+
+//trash
+Route::get('/trash', function () {
+    return Inertia::render('Trash');
+})->name('trash');
 
 
 

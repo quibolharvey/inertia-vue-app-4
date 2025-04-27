@@ -60,6 +60,12 @@ const showingNavigationDropdown = ref(false);
                                             >
                                                 Subscription Details
                                             </NavLink>
+                                            <NavLink
+                                                :href="route('trash')"
+                                                :active="route().current('trash')"
+                                            >
+                                                Trash
+                                            </NavLink>
                                         </template>
 
                                         <!-- Available for All -->
