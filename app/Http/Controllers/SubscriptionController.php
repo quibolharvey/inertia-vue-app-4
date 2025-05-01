@@ -44,16 +44,26 @@ class SubscriptionController extends Controller
         ]);
     }
 
-    public function allSubscriptions()
-    {
-        $subscriptions = Subscription::with('user') // assuming there's a relation
+    public function allSubscriptions(Request $request)
+{
+    $search = $request->get('search');
+    
+    $subscriptions = Subscription::with('user') // assuming there's a relation
+        ->when($search, function ($query) use ($search) {
+            $query->whereHas('user', function ($query) use ($search) {
+                $query->where('full_name', 'like', "%$search%")
+                      ->orWhere('email', 'like', "%$search%");
+            });
+        })
+        ->orderBy('created_at', 'asc')
         ->latest()
         ->paginate(5); // ✅ only 6 per page
 
     return Inertia::render('SubscriptionDetails', [
         'subscriptions' => $subscriptions,
     ]);
-    }
+}
+
 
     public function updateStatus(Request $request, $id)
     {
@@ -65,24 +75,84 @@ class SubscriptionController extends Controller
         return back();
     }
     public function getGymMembers(Request $request)
+    {
+        $searchTerm = $request->input('search', '');
+        $status = $request->input('status', ''); // New: status filter
+    
+        $members = Subscription::where('has_membership', true)
+            ->when($status, fn($q) => $q->where('status', $status)) // Apply status filter
+            ->where(function ($query) use ($searchTerm) {
+                $query->where('full_name', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('email', 'like', '%' . $searchTerm . '%');
+            })
+            ->withTrashed() // Include soft-deleted entries
+            ->paginate(5)
+            ->withQueryString();
+    
+        return Inertia::render('GymMembers', [
+            'members' => $members,
+            'searchTerm' => $searchTerm,
+            'statusFilter' => $status, // Pass to frontend
+        ]);
+    }
+    
+
+public function destroy($id)
 {
-    $searchTerm = $request->input('search', '');
+    $subscription = Subscription::findOrFail($id);
+    $subscription->delete();
 
-    $members = Subscription::where('has_membership', true)
-                            ->where(function($query) use ($searchTerm) {
-                                $query->where('full_name', 'like', '%' . $searchTerm . '%')
-                                      ->orWhere('email', 'like', '%' . $searchTerm . '%');
-                            })
-                            ->paginate(5) // Add this to paginate results (5 per page)
-                            ->withQueryString(); // Keep the search query when navigating pages
+    return redirect()->back()->with('message', 'Subscription moved to trash.');
+}
 
-    return Inertia::render('GymMembers', [
-        'members' => $members,
-        'searchTerm' => $searchTerm,
+public function trashedSubscriptions()
+{
+    $subscriptions = Subscription::onlyTrashed()->with('user')->paginate(10);
+
+    return Inertia::render('Trash', [
+        'subscriptions' => $subscriptions
     ]);
 }
 
+public function trashed()
+{
+    $trashedSubscriptions = Subscription::onlyTrashed()->with('user')->get();
 
+    return Inertia::render('Trash', [
+        'subscriptions' => $trashedSubscriptions,
+    ]);
+}
 
+public function forceDelete($id)
+{
+    try {
+        // Find the subscription, even if it's soft deleted
+        $subscription = Subscription::withTrashed()->findOrFail($id);
+        
+        // Permanently delete the subscription
+        $subscription->forceDelete();
+
+        return redirect()->route('subscriptions.index')->with('success', 'Subscription permanently deleted.');
+    } catch (\Exception $e) {
+        // Handle errors, log them, and return a response
+        \Log::error('Error in forceDelete: ' . $e->getMessage());
+        return back()->with('error', 'There was an error deleting the subscription.');
+    }
+}
+public function restore($id)
+{
+    try {
+        // Find the soft-deleted subscription
+        $subscription = Subscription::withTrashed()->findOrFail($id);
+
+        // Restore the subscription
+        $subscription->restore();
+
+        return redirect()->route('subscriptions.index')->with('success', 'Subscription restored successfully.');
+    } catch (\Exception $e) {
+        \Log::error('Error restoring subscription: ' . $e->getMessage());
+        return back()->with('error', 'There was an error restoring the subscription.');
+    }
+}
 }
 

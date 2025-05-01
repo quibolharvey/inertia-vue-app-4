@@ -87,6 +87,14 @@ const showingNavigationDropdown = ref(false);
                                                 My Subscription Details
                                             </NavLink>
                                         </template>
+                                        <!-- <template v-if="$page.props.auth.user.role === 'user'">
+                                            <NavLink
+                                                :href="route('membership')"
+                                                :active="route().current('membership')"
+                                            >
+                                                Membership
+                                            </NavLink>
+                                        </template> -->
                                     </div>
 
 

@@ -9,6 +9,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\RegisteredAccountController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\MembershipController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -93,6 +94,8 @@ Route::put('/registered-account/{user}/toggle-status', [RegisteredAccountControl
 
 //new
 Route::get('/subscription', fn() => Inertia::render('Subscription'))->name('subscription');
+Route::delete('/subscription/{id}', [SubscriptionController::class, 'destroy'])->name('subscription.destroy');
+
 
 Route::post('/subscription', [SubscriptionController::class, 'store'])->name('subscription.store');
 
@@ -115,6 +118,23 @@ Route::middleware(['auth'])->get('/my-subscription', [MySubscriptionController::
 Route::get('/trash', function () {
     return Inertia::render('Trash');
 })->name('trash');
+
+Route::get('/membership', function () {
+    return Inertia::render('Membership');
+})->name('membership');
+
+Route::post('/membership-submit', [MembershipController::class, 'store']);
+
+
+Route::get('/trash', [SubscriptionController::class, 'trashedSubscriptions'])->name('subscriptions.trash');
+
+Route::get('/trash', [SubscriptionController::class, 'trashed'])->name('trash');
+
+Route::delete('/subscriptions/{subscription}/force-delete', [SubscriptionController::class, 'forceDelete'])->name('subscriptions.force-delete');
+
+Route::post('/subscriptions/{subscription}/restore', [SubscriptionController::class, 'restore'])->name('subscriptions.restore');
+
+
 
 
 

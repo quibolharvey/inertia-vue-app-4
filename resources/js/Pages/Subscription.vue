@@ -27,7 +27,11 @@ const expiryDate = computed(() => {
             return '';
     }
 
-    return expiry.toLocaleDateString(); // or use `toDateString()`
+    return expiry.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
 });
 
 const handleSubmit = () => {
@@ -53,7 +57,7 @@ const handleSubmit = () => {
         subscription_type: subscriptionType.value,
         has_membership: applyMembership.value,
         amount: total,
-        expiry_date: expiryDate.value, // Include in payload
+        expiry_date: expiryDate.value,
     });
 };
 </script>
@@ -63,78 +67,102 @@ const handleSubmit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Subscription</h2>
+            <div class="flex flex-col space-y-1">
+                <h2 class="text-2xl font-bold text-gray-900">Gym Subscription</h2>
+                <p class="text-sm text-gray-500">Choose your preferred membership plan</p>
+            </div>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
-                        <form @submit.prevent="handleSubmit">
+        <div class="py-8">
+            <div class="mx-auto max-w-md sm:px-6 lg:px-8">
+                <div class="overflow-hidden bg-white shadow-xl sm:rounded-2xl">
+                    <div class="px-8 py-10">
+                        <form @submit.prevent="handleSubmit" class="space-y-6">
                             <!-- Full Name -->
-                            <div class="mb-4">
-                                <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <div>
+                                <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                                 <input
                                     type="text"
                                     id="fullName"
                                     v-model="fullName"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                    class="block w-full rounded-lg border-gray-300 py-3 px-4 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-150"
+                                    placeholder="Enter your full name"
                                     required
                                 />
                             </div>
 
                             <!-- Email -->
-                            <div class="mb-4">
-                                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                                 <input
                                     type="email"
                                     id="email"
                                     v-model="email"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                    class="block w-full rounded-lg border-gray-300 py-3 px-4 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-150"
+                                    placeholder="your@email.com"
                                     required
                                 />
                             </div>
 
                             <!-- Subscription Type -->
-                            <div class="mb-4">
-                                <label for="subscriptionType" class="block text-sm font-medium text-gray-700">Subscription Type</label>
+                            <div>
+                                <label for="subscriptionType" class="block text-sm font-medium text-gray-700 mb-1">Subscription Plan</label>
                                 <select
                                     id="subscriptionType"
                                     v-model="subscriptionType"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                    class="block w-full rounded-lg border-gray-300 py-3 px-4 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-150 appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiAjdjEwMTcyNCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwb2x5bGluZSBwb2ludHM9IjYgOSAxMiAxNSAxOCA5Ij48L3BvbHlsaW5lPjwvc3ZnPg==')] bg-no-repeat bg-[center_right_1rem]"
                                     required
                                 >
-                                    <option value="" disabled>Select Subscription Type</option>
-                                    <option value="daily">Daily - ₱150</option>
-                                    <option value="monthly">Monthly - ₱900</option>
-                                    <option value="yearly">Yearly - ₱9000</option>
+                                    <option value="" disabled selected>Select your plan</option>
+                                    <option value="daily" class="py-2">Daily - ₱150</option>
+                                    <option value="monthly" class="py-2">Monthly - ₱900</option>
+                                    <option value="yearly" class="py-2">Yearly - ₱9,000</option>
                                 </select>
                             </div>
 
                             <!-- Membership Checkbox -->
-                            <div class="mb-4">
-                                <label class="inline-flex items-center">
+                            <div class="relative flex items-start">
+                                <div class="flex h-5 items-center">
                                     <input
+                                        id="membership"
                                         type="checkbox"
                                         v-model="applyMembership"
-                                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                        class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                     />
-                                    <span class="ml-2 text-sm text-gray-700">Apply Membership? ₱400</span>
-                                </label>
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="membership" class="font-medium text-gray-700">Premium Membership</label>
+                                    <p class="text-gray-500">Includes access to all facilities (+₱400)</p>
+                                </div>
                             </div>
 
                             <!-- Expiry Display -->
-                            <div v-if="expiryDate" class="mb-4">
-                                <p><strong>Expiry Date:</strong> {{ expiryDate }}</p>
+                            <div v-if="expiryDate" class="rounded-lg bg-blue-50 p-4 border border-blue-100">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-blue-800">Subscription Details</h3>
+                                        <div class="mt-1 text-sm text-blue-700">
+                                            <p>Your access will be valid until: <span class="font-semibold">{{ expiryDate }}</span></p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Submit Button -->
-                            <div class="mb-4">
+                            <div>
                                 <button
                                     type="submit"
-                                    class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
+                                    class="flex w-full justify-center rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 py-3 px-4 text-sm font-semibold text-white shadow-sm hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 transform hover:-translate-y-0.5"
                                 >
-                                    Subscribe
+                                    Complete Subscription
+                                    <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                    </svg>
                                 </button>
                             </div>
                         </form>
