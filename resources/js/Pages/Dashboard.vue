@@ -50,7 +50,7 @@ const checkOut = () => {
     <AuthenticatedLayout>
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                Welcome to PowerFit Gym
+                Welcome to Fitspire Gym
             </h2>
         </template>
 
